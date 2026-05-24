@@ -121,4 +121,4 @@ $bus->addMiddleware(new LoggingMiddleware($logger));
 
 ## License
 
-Licensed under the MIT license and is free for private or commercial projects.
+Licensed under the [MIT license](https://opensource.org/licenses/MIT) and is free for private or commercial projects.
