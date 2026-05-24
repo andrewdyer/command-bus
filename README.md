@@ -91,16 +91,19 @@ $bus->addMiddleware(new LoggingMiddleware($logger));
 Each middleware implements `CommandMiddlewareInterface` and receives the command and a `$next` callable to pass control down the pipeline:
 
 ```php
-use AndrewDyer\CommandBus\Contracts\CommandInterface;
-use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
-
 class TransactionMiddleware implements CommandMiddlewareInterface
 {
     public function execute(CommandInterface $command, callable $next): mixed
     {
         // Begin transaction...
 
-        $result = $next($command);
+        try {
+            $result = $next($command);
+        } catch (\Throwable $e) {
+            // Rollback transaction...
+
+            throw $e;
+        }
 
         // Commit transaction...
 
