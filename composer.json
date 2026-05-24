@@ -1,6 +1,6 @@
 {
   "name": "andrewdyer/command-bus",
-  "description": "",
+  "description": "A framework-agnostic PHP library for dispatching commands to handlers, with support for a configurable middleware pipeline",
   "type": "library",
   "license": "MIT",
   "autoload": {
