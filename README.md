@@ -1,6 +1,6 @@
 # Command Bus
 
-A lightweight command bus with middleware pipeline support for PHP 8.3+.
+A framework-agnostic PHP library for dispatching commands to handlers, with support for a configurable middleware pipeline.
 
 ## Introduction
 
