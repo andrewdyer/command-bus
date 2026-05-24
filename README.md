@@ -1,3 +1,5 @@
+![Command Bus](http://public-assets.andrewdyer.rocks/images/covers/command-bus.png)
+
 # Command Bus
 
 A framework-agnostic PHP library for dispatching commands to handlers, with support for a configurable middleware pipeline.
