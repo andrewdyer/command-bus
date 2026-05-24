@@ -75,9 +75,9 @@ Once the command bus is configured, commands can be dispatched to their register
 
 ```php
 $user = $bus->dispatch(new CreateUserCommand(
-    firstName: 'Oliver',
-    lastName: 'French',
-    email: 'oliver.french@example.com',
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john.doe@example.com',
 ));
 ```
 
