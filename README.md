@@ -1,37 +1,136 @@
-![PHP Package Template](https://public-assets.andrewdyer.rocks/images/covers/php-package-template.png)
+# Command Bus
 
-# PHP Package Template
+A framework-agnostic PHP library for dispatching commands to handlers, with support for a configurable middleware pipeline.
 
-A template for creating PHP 8.3+ packages.
+## Introduction
 
-## ⚖️ License
+This library provides a framework-agnostic command bus for PHP applications, dispatching commands to their registered handlers through a configurable middleware pipeline, with a PSR-3 compatible logging middleware included out of the box.
+
+## Prerequisites
+
+- **[PHP](https://www.php.net/)**: Version 8.3 or higher is required.
+- **[Composer](https://getcomposer.org/)**: Dependency management tool for PHP.
+
+## Installation
+
+```bash
+composer require andrewdyer/command-bus
+```
+
+## Getting Started
+
+### 1. Create a command
+
+Create a command by defining a plain object that implements `CommandInterface`, carrying the data required to perform an operation:
+
+```php
+use AndrewDyer\CommandBus\Contracts\CommandInterface;
+
+class CreateUserCommand implements CommandInterface
+{
+    public function __construct(
+        public readonly string $firstName,
+        public readonly string $lastName,
+        public readonly string $email,
+    ) {}
+}
+```
+
+### 2. Create a handler
+
+Create a handler by implementing `CommandHandlerInterface` with the logic for processing the command:
+
+```php
+use AndrewDyer\CommandBus\Contracts\CommandHandlerInterface;
+use AndrewDyer\CommandBus\Contracts\CommandInterface;
+
+class CreateUserHandler implements CommandHandlerInterface
+{
+    public function handle(CommandInterface $command): mixed
+    {
+        // Handle the command...
+
+        return $user;
+    }
+}
+```
+
+### 3. Create the command bus and register the handler
+
+Create a `CommandBus` instance and register the handler against the command class it should handle:
+
+```php
+use AndrewDyer\CommandBus\CommandBus;
+
+$bus = new CommandBus();
+
+$bus->register(CreateUserCommand::class, new CreateUserHandler());
+```
+
+## Usage
+
+Once the command bus is configured, commands can be dispatched to their registered handlers. If no handler is registered for a given command, a `HandlerNotFoundException` is thrown.
+
+### Dispatching a command
+
+```php
+$user = $bus->dispatch(new CreateUserCommand(
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john.doe@example.com',
+));
+```
+
+### Adding middleware
+
+Middleware intercepts commands before they reach the handler, allowing cross-cutting concerns such as logging, transactions, or validation to be applied consistently across all commands.
+
+#### Logging middleware
+
+A `LoggingMiddleware` is included out of the box. It accepts any PSR-3 compatible logger and logs the command class name before and after dispatch:
+
+```php
+use AndrewDyer\CommandBus\Middleware\LoggingMiddleware;
+
+$bus->addMiddleware(new LoggingMiddleware($logger));
+```
+
+#### Custom middleware
+
+Custom middleware implements `CommandMiddlewareInterface` and receives the command and a `$next` callable to pass control down the pipeline:
+
+```php
+use AndrewDyer\CommandBus\Contracts\CommandInterface;
+use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
+
+class TransactionMiddleware implements CommandMiddlewareInterface
+{
+    public function execute(CommandInterface $command, callable $next): mixed
+    {
+        // Begin transaction...
+
+        try {
+            $result = $next($command);
+        } catch (\Throwable $e) {
+            // Rollback transaction...
+
+            throw $e;
+        }
+
+        // Commit transaction...
+
+        return $result;
+    }
+}
+```
+
+Middleware is executed in the order it is registered, so the first middleware added is the first to intercept the command:
+
+```php
+$bus->addMiddleware(new TransactionMiddleware());
+$bus->addMiddleware(new LoggingMiddleware($logger));
+```
+
+## License
 
 Licensed under the [MIT license](https://opensource.org/licenses/MIT) and is free for private or commercial projects.
-
-## ✨ Introduction
-
-This template provides a solid foundation for building modern PHP packages. It’s designed to help you hit the ground running and focus on building your package functionality without worrying about boilerplate setup like autoloading, testing, or Composer configuration.
-
-## 📋 Prerequisites
-
-Before you begin, ensure you have met the following requirements:
-
-- **PHP**: Version 8.3 or higher.
-- **[Composer](https://getcomposer.org)**: A dependency manager for PHP, used to install packages and autoload your code.
-
-## 🛠️ Features
-
-This template includes the following tools and configurations:
-
-- [PSR-4 autoloading](https://www.php-fig.org/psr/psr-4/) via Composer
-- [PHPUnit](https://phpunit.de/) for unit testing to ensure the reliability of your code.
-- [PHP Coding Standards Fixer](https://cs.symfony.com/) for maintaining consistent code style.
-- CI (Continuous Integration) setup with [GitHub Actions](https://github.com/features/actions) for automated testing.
-
-## 🚀 Getting Started
-
-If you like what you've seen so far and think this setup fits your needs, you can quickly get started by clicking the **Use this template** button at the top of the repository on GitHub.
-
-## 🤝 Contributing
-
-Found a bug or want to improve this package? Feel free to open a pull request or submit an issue.

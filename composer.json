@@ -1,19 +1,29 @@
 {
-  "name": "your-vendor/your-package",
-  "description": "",
+  "name": "andrewdyer/command-bus",
+  "description": "A framework-agnostic PHP library for dispatching commands to handlers, with support for a configurable middleware pipeline",
+  "keywords": [
+    "php",
+    "command",
+    "command-bus",
+    "framework-agnostic",
+    "middleware",
+    "pipeline"
+  ],
   "type": "library",
+  "license": "MIT",
   "autoload": {
     "psr-4": {
-      "YourVendor\\YourPackage\\": "src/"
+      "AndrewDyer\\CommandBus\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "YourVendor\\YourPackage\\Tests\\": "tests/"
+      "AndrewDyer\\CommandBus\\Tests\\": "tests/"
     }
   },
   "require": {
-    "php": "^8.3"
+    "php": "^8.3",
+    "psr/log": "^3.0"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.75",
