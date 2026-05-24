@@ -79,18 +79,28 @@ $user = $bus->dispatch(new CreateUserCommand(
 ));
 ```
 
-### Middleware
+### Adding middleware
 
-Middleware can be added to the pipeline to intercept commands before they reach the handler. Multiple middleware are executed in the order they are added:
+Middleware intercepts commands before they reach the handler, allowing cross-cutting concerns such as logging, transactions, or validation to be applied consistently across all commands.
+
+#### Logging middleware
+
+A `LoggingMiddleware` is included out of the box. It accepts any PSR-3 compatible logger and logs the command class name before and after dispatch:
 
 ```php
-$bus->addMiddleware(new TransactionMiddleware());
+use AndrewDyer\CommandBus\Middleware\LoggingMiddleware;
+
 $bus->addMiddleware(new LoggingMiddleware($logger));
 ```
 
-Each middleware implements `CommandMiddlewareInterface` and receives the command and a `$next` callable to pass control down the pipeline:
+#### Custom middleware
+
+Custom middleware implements `CommandMiddlewareInterface` and receives the command and a `$next` callable to pass control down the pipeline:
 
 ```php
+use AndrewDyer\CommandBus\Contracts\CommandInterface;
+use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
+
 class TransactionMiddleware implements CommandMiddlewareInterface
 {
     public function execute(CommandInterface $command, callable $next): mixed
@@ -112,13 +122,10 @@ class TransactionMiddleware implements CommandMiddlewareInterface
 }
 ```
 
-#### Logging middleware
-
-A `LoggingMiddleware` is included out of the box. It accepts any PSR-3 compatible logger and logs the command class name before and after dispatch:
+Middleware is executed in the order it is registered, so the first middleware added is the first to intercept the command:
 
 ```php
-use AndrewDyer\CommandBus\Middleware\LoggingMiddleware;
-
+$bus->addMiddleware(new TransactionMiddleware());
 $bus->addMiddleware(new LoggingMiddleware($logger));
 ```
 
