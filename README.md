@@ -21,7 +21,7 @@ composer require andrewdyer/command-bus
 
 ### 1. Create a command
 
-Commands are plain objects that implement `CommandInterface`. They carry the data required to perform an operation:
+Create a command by defining a plain object that implements `CommandInterface`, carrying the data required to perform an operation:
 
 ```php
 use AndrewDyer\CommandBus\Contracts\CommandInterface;
@@ -38,7 +38,7 @@ class CreateUserCommand implements CommandInterface
 
 ### 2. Create a handler
 
-Handlers implement `CommandHandlerInterface` and contain the logic for processing a command:
+Create a handler by implementing `CommandHandlerInterface` with the logic for processing the command:
 
 ```php
 use AndrewDyer\CommandBus\Contracts\CommandHandlerInterface;
@@ -56,6 +56,8 @@ class CreateUserHandler implements CommandHandlerInterface
 ```
 
 ### 3. Create the command bus and register the handler
+
+Create a `CommandBus` instance and register the handler against the command class it should handle:
 
 ```php
 use AndrewDyer\CommandBus\CommandBus;
