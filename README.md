@@ -1,37 +1,126 @@
-![PHP Package Template](https://public-assets.andrewdyer.rocks/images/covers/php-package-template.png)
+# Command Bus
 
-# PHP Package Template
+A lightweight command bus with middleware pipeline support for PHP 8.3+.
 
-A template for creating PHP 8.3+ packages.
+## Introduction
 
-## ⚖️ License
+This library provides a command bus implementation for PHP applications, enabling commands to be dispatched to their registered handlers through a configurable middleware pipeline. It supports handler registration, middleware chaining, and ships with a PSR-3 compatible logging middleware out of the box.
 
-Licensed under the [MIT license](https://opensource.org/licenses/MIT) and is free for private or commercial projects.
+## Prerequisites
 
-## ✨ Introduction
+- PHP: Version 8.3 or higher is required.
+- Composer: Dependency management tool for PHP.
 
-This template provides a solid foundation for building modern PHP packages. It’s designed to help you hit the ground running and focus on building your package functionality without worrying about boilerplate setup like autoloading, testing, or Composer configuration.
+## Installation
 
-## 📋 Prerequisites
+```bash
+composer require andrewdyer/command-bus
+```
 
-Before you begin, ensure you have met the following requirements:
+## Getting Started
 
-- **PHP**: Version 8.3 or higher.
-- **[Composer](https://getcomposer.org)**: A dependency manager for PHP, used to install packages and autoload your code.
+### 1. Create a command
 
-## 🛠️ Features
+Commands are plain objects that implement `CommandInterface`. They carry the data required to perform an operation:
 
-This template includes the following tools and configurations:
+```php
+use AndrewDyer\CommandBus\Contracts\CommandInterface;
 
-- [PSR-4 autoloading](https://www.php-fig.org/psr/psr-4/) via Composer
-- [PHPUnit](https://phpunit.de/) for unit testing to ensure the reliability of your code.
-- [PHP Coding Standards Fixer](https://cs.symfony.com/) for maintaining consistent code style.
-- CI (Continuous Integration) setup with [GitHub Actions](https://github.com/features/actions) for automated testing.
+class CreateUserCommand implements CommandInterface
+{
+    public function __construct(
+        public readonly string $firstName,
+        public readonly string $lastName,
+        public readonly string $email,
+    ) {}
+}
+```
 
-## 🚀 Getting Started
+### 2. Create a handler
 
-If you like what you've seen so far and think this setup fits your needs, you can quickly get started by clicking the **Use this template** button at the top of the repository on GitHub.
+Handlers implement `CommandHandlerInterface` and contain the logic for processing a command:
 
-## 🤝 Contributing
+```php
+use AndrewDyer\CommandBus\Contracts\CommandHandlerInterface;
+use AndrewDyer\CommandBus\Contracts\CommandInterface;
 
-Found a bug or want to improve this package? Feel free to open a pull request or submit an issue.
+class CreateUserHandler implements CommandHandlerInterface
+{
+    public function handle(CommandInterface $command): mixed
+    {
+        // Handle the command...
+
+        return $user;
+    }
+}
+```
+
+### 3. Create the command bus and register the handler
+
+```php
+use AndrewDyer\CommandBus\CommandBus;
+
+$bus = new CommandBus();
+
+$bus->register(CreateUserCommand::class, new CreateUserHandler());
+```
+
+### 4. Dispatch a command
+
+```php
+$user = $bus->dispatch(new CreateUserCommand(
+    firstName: 'Oliver',
+    lastName: 'French',
+    email: 'oliver.french@example.com',
+));
+```
+
+## Usage
+
+Once the command bus is configured, commands can be dispatched to their registered handlers. If no handler is registered for a given command, a `HandlerNotFoundException` is thrown.
+
+### Middleware
+
+Middleware can be added to the pipeline to intercept commands before they reach the handler. Each middleware receives the command and a `$next` callable to pass control down the pipeline:
+
+```php
+use AndrewDyer\CommandBus\Contracts\CommandInterface;
+use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
+
+class TransactionMiddleware implements CommandMiddlewareInterface
+{
+    public function execute(CommandInterface $command, callable $next): mixed
+    {
+        // Begin transaction...
+
+        $result = $next($command);
+
+        // Commit transaction...
+
+        return $result;
+    }
+}
+
+$bus->addMiddleware(new TransactionMiddleware());
+```
+
+Multiple middleware are executed in the order they are added:
+
+```php
+$bus->addMiddleware(new TransactionMiddleware());
+$bus->addMiddleware(new LoggingMiddleware($logger));
+```
+
+### Logging middleware
+
+A `LoggingMiddleware` is included out of the box. It accepts any PSR-3 compatible logger and logs the command class name before and after dispatch:
+
+```php
+use AndrewDyer\CommandBus\Middleware\LoggingMiddleware;
+
+$bus->addMiddleware(new LoggingMiddleware($logger));
+```
+
+## License
+
+Licensed under the MIT license and is free for private or commercial projects.
