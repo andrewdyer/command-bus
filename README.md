@@ -4,7 +4,7 @@ A framework-agnostic PHP library for dispatching commands to handlers, with supp
 
 ## Introduction
 
-This library provides a command bus implementation for PHP applications, enabling commands to be dispatched to their registered handlers through a configurable middleware pipeline. It supports handler registration, middleware chaining, and ships with a PSR-3 compatible logging middleware out of the box.
+This library provides a framework-agnostic command bus for PHP applications, dispatching commands to their registered handlers through a configurable middleware pipeline, with a PSR-3 compatible logging middleware included out of the box.
 
 ## Prerequisites
 
