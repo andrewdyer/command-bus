@@ -11,16 +11,28 @@ use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
 use AndrewDyer\CommandBus\Exceptions\HandlerNotFoundException;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit tests for CommandBus.
+ */
 final class CommandBusTest extends TestCase
 {
+    /**
+     * The command bus instance under test.
+     */
     private CommandBus $bus;
 
+    /**
+     * Sets up the test fixture before each test method.
+     */
     protected function setUp(): void
     {
         parent::setUp();
         $this->bus = new CommandBus();
     }
 
+    /**
+     * Asserts that the command bus dispatches a command to its registered handler.
+     */
     public function testDispatchesCommandToRegisteredHandler(): void
     {
         $command = new class () implements CommandInterface {
@@ -43,6 +55,9 @@ final class CommandBusTest extends TestCase
         $this->assertTrue($handler->called);
     }
 
+    /**
+     * Asserts that the dispatch method returns the result from the handler.
+     */
     public function testDispatchReturnsHandlerResult(): void
     {
         $command = new class () implements CommandInterface {
@@ -61,6 +76,9 @@ final class CommandBusTest extends TestCase
         $this->assertSame('expected result', $result);
     }
 
+    /**
+     * Asserts that dispatching an unregistered command throws HandlerNotFoundException.
+     */
     public function testThrowsHandlerNotFoundExceptionForUnregisteredCommand(): void
     {
         $command = new class () implements CommandInterface {
@@ -71,6 +89,9 @@ final class CommandBusTest extends TestCase
         $this->bus->dispatch($command);
     }
 
+    /**
+     * Asserts that middleware is executed before the handler.
+     */
     public function testMiddlewareIsExecutedBeforeHandler(): void
     {
         $log = [];
@@ -111,6 +132,9 @@ final class CommandBusTest extends TestCase
         $this->assertSame(['middleware', 'handler'], $log);
     }
 
+    /**
+     * Asserts that multiple middleware execute in the order they were added.
+     */
     public function testMiddlewareExecutesInOrderAdded(): void
     {
         $log = [];
@@ -165,6 +189,9 @@ final class CommandBusTest extends TestCase
         $this->assertSame(['first', 'second', 'handler'], $log);
     }
 
+    /**
+     * Asserts that middleware can short-circuit the pipeline by not calling next.
+     */
     public function testMiddlewareCanShortCircuitPipeline(): void
     {
         $command = new class () implements CommandInterface {
