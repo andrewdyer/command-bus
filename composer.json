@@ -2,6 +2,7 @@
   "name": "andrewdyer/command-bus",
   "description": "",
   "type": "library",
+  "license": "MIT",
   "autoload": {
     "psr-4": {
       "AndrewDyer\\CommandBus\\": "src/"
