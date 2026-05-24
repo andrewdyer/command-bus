@@ -8,8 +8,8 @@ This library provides a command bus implementation for PHP applications, enablin
 
 ## Prerequisites
 
-- PHP: Version 8.3 or higher is required.
-- Composer: Dependency management tool for PHP.
+- **[PHP](https://www.php.net/)**: Version 8.3 or higher is required.
+- **[Composer](https://getcomposer.org/)**: Dependency management tool for PHP.
 
 ## Installation
 
