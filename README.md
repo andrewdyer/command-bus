@@ -65,7 +65,11 @@ $bus = new CommandBus();
 $bus->register(CreateUserCommand::class, new CreateUserHandler());
 ```
 
-### 4. Dispatch a command
+## Usage
+
+Once the command bus is configured, commands can be dispatched to their registered handlers. If no handler is registered for a given command, a `HandlerNotFoundException` is thrown.
+
+### Dispatching a command
 
 ```php
 $user = $bus->dispatch(new CreateUserCommand(
@@ -75,13 +79,16 @@ $user = $bus->dispatch(new CreateUserCommand(
 ));
 ```
 
-## Usage
-
-Once the command bus is configured, commands can be dispatched to their registered handlers. If no handler is registered for a given command, a `HandlerNotFoundException` is thrown.
-
 ### Middleware
 
-Middleware can be added to the pipeline to intercept commands before they reach the handler. Each middleware receives the command and a `$next` callable to pass control down the pipeline:
+Middleware can be added to the pipeline to intercept commands before they reach the handler. Multiple middleware are executed in the order they are added:
+
+```php
+$bus->addMiddleware(new TransactionMiddleware());
+$bus->addMiddleware(new LoggingMiddleware($logger));
+```
+
+Each middleware implements `CommandMiddlewareInterface` and receives the command and a `$next` callable to pass control down the pipeline:
 
 ```php
 use AndrewDyer\CommandBus\Contracts\CommandInterface;
@@ -100,18 +107,9 @@ class TransactionMiddleware implements CommandMiddlewareInterface
         return $result;
     }
 }
-
-$bus->addMiddleware(new TransactionMiddleware());
 ```
 
-Multiple middleware are executed in the order they are added:
-
-```php
-$bus->addMiddleware(new TransactionMiddleware());
-$bus->addMiddleware(new LoggingMiddleware($logger));
-```
-
-### Logging middleware
+#### Logging middleware
 
 A `LoggingMiddleware` is included out of the box. It accepts any PSR-3 compatible logger and logs the command class name before and after dispatch:
 
