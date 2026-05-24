@@ -1,5 +1,5 @@
 {
-  "name": "your-vendor/your-package",
+  "name": "andrewdyer/command-bus",
   "description": "",
   "type": "library",
   "autoload": {
