@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace AndrewDyer\CommandBus\Tests;
 
 use AndrewDyer\CommandBus\CommandBus;
-use AndrewDyer\CommandBus\Contracts\CommandHandlerInterface;
-use AndrewDyer\CommandBus\Contracts\CommandInterface;
-use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
 use AndrewDyer\CommandBus\Exceptions\HandlerNotFoundException;
+use AndrewDyer\CommandBus\Tests\Support\TestCommand;
+use AndrewDyer\CommandBus\Tests\Support\TestHandler;
+use AndrewDyer\CommandBus\Tests\Support\TestMiddleware;
+use Closure;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -35,22 +37,10 @@ final class CommandBusTest extends TestCase
      */
     public function testDispatchesCommandToRegisteredHandler(): void
     {
-        $command = new class () implements CommandInterface {
-        };
+        $handler = new TestHandler();
 
-        $handler = new class () implements CommandHandlerInterface {
-            public bool $called = false;
-
-            public function handle(CommandInterface $command): mixed
-            {
-                $this->called = true;
-
-                return null;
-            }
-        };
-
-        $this->bus->register(get_class($command), $handler);
-        $this->bus->dispatch($command);
+        $this->bus->register(TestCommand::class, $handler);
+        $this->bus->dispatch(new TestCommand());
 
         $this->assertTrue($handler->called);
     }
@@ -60,20 +50,77 @@ final class CommandBusTest extends TestCase
      */
     public function testDispatchReturnsHandlerResult(): void
     {
-        $command = new class () implements CommandInterface {
-        };
-
-        $handler = new class () implements CommandHandlerInterface {
-            public function handle(CommandInterface $command): mixed
+        $handler = new class () {
+            public function handle(object $command): mixed
             {
                 return 'expected result';
             }
         };
 
-        $this->bus->register(get_class($command), $handler);
-        $result = $this->bus->dispatch($command);
+        $this->bus->register(TestCommand::class, $handler);
+        $result = $this->bus->dispatch(new TestCommand());
 
         $this->assertSame('expected result', $result);
+    }
+
+    /**
+     * Asserts that registering a handler without a handle() method throws InvalidArgumentException.
+     */
+    public function testThrowsInvalidArgumentExceptionWhenHandlerHasNoHandleMethod(): void
+    {
+        $handler = new class () {
+        };
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->bus->register(TestCommand::class, $handler);
+    }
+
+    /**
+     * Asserts that registering a handler with a non-public handle() method throws InvalidArgumentException.
+     */
+    public function testThrowsInvalidArgumentExceptionWhenHandlerHasNonPublicHandleMethod(): void
+    {
+        $handler = new class () {
+            protected function handle(object $command): mixed
+            {
+                return null;
+            }
+        };
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->bus->register(TestCommand::class, $handler);
+    }
+
+    /**
+     * Asserts that registering middleware without an execute() method throws InvalidArgumentException.
+     */
+    public function testThrowsInvalidArgumentExceptionWhenMiddlewareHasNoExecuteMethod(): void
+    {
+        $middleware = new class () {
+        };
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->bus->addMiddleware($middleware);
+    }
+
+    /**
+     * Asserts that registering middleware with a non-public execute() method throws InvalidArgumentException.
+     */
+    public function testThrowsInvalidArgumentExceptionWhenMiddlewareHasNonPublicExecuteMethod(): void
+    {
+        $middleware = new class () {
+            protected function execute(object $command, Closure $next): mixed
+            {
+                return $next($command);
+            }
+        };
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->bus->addMiddleware($middleware);
     }
 
     /**
@@ -81,12 +128,9 @@ final class CommandBusTest extends TestCase
      */
     public function testThrowsHandlerNotFoundExceptionForUnregisteredCommand(): void
     {
-        $command = new class () implements CommandInterface {
-        };
-
         $this->expectException(HandlerNotFoundException::class);
 
-        $this->bus->dispatch($command);
+        $this->bus->dispatch(new TestCommand());
     }
 
     /**
@@ -96,15 +140,12 @@ final class CommandBusTest extends TestCase
     {
         $log = [];
 
-        $command = new class () implements CommandInterface {
-        };
-
-        $handler = new class ($log) implements CommandHandlerInterface {
+        $handler = new class ($log) {
             public function __construct(private array &$log)
             {
             }
 
-            public function handle(CommandInterface $command): mixed
+            public function handle(object $command): mixed
             {
                 $this->log[] = 'handler';
 
@@ -112,22 +153,11 @@ final class CommandBusTest extends TestCase
             }
         };
 
-        $middleware = new class ($log) implements CommandMiddlewareInterface {
-            public function __construct(private array &$log)
-            {
-            }
+        $middleware = new TestMiddleware($log, 'middleware');
 
-            public function execute(CommandInterface $command, callable $next): mixed
-            {
-                $this->log[] = 'middleware';
-
-                return $next($command);
-            }
-        };
-
-        $this->bus->register(get_class($command), $handler);
+        $this->bus->register(TestCommand::class, $handler);
         $this->bus->addMiddleware($middleware);
-        $this->bus->dispatch($command);
+        $this->bus->dispatch(new TestCommand());
 
         $this->assertSame(['middleware', 'handler'], $log);
     }
@@ -139,15 +169,12 @@ final class CommandBusTest extends TestCase
     {
         $log = [];
 
-        $command = new class () implements CommandInterface {
-        };
-
-        $handler = new class ($log) implements CommandHandlerInterface {
+        $handler = new class ($log) {
             public function __construct(private array &$log)
             {
             }
 
-            public function handle(CommandInterface $command): mixed
+            public function handle(object $command): mixed
             {
                 $this->log[] = 'handler';
 
@@ -155,36 +182,13 @@ final class CommandBusTest extends TestCase
             }
         };
 
-        $first = new class ($log) implements CommandMiddlewareInterface {
-            public function __construct(private array &$log)
-            {
-            }
+        $first = new TestMiddleware($log, 'first');
+        $second = new TestMiddleware($log, 'second');
 
-            public function execute(CommandInterface $command, callable $next): mixed
-            {
-                $this->log[] = 'first';
-
-                return $next($command);
-            }
-        };
-
-        $second = new class ($log) implements CommandMiddlewareInterface {
-            public function __construct(private array &$log)
-            {
-            }
-
-            public function execute(CommandInterface $command, callable $next): mixed
-            {
-                $this->log[] = 'second';
-
-                return $next($command);
-            }
-        };
-
-        $this->bus->register(get_class($command), $handler);
+        $this->bus->register(TestCommand::class, $handler);
         $this->bus->addMiddleware($first);
         $this->bus->addMiddleware($second);
-        $this->bus->dispatch($command);
+        $this->bus->dispatch(new TestCommand());
 
         $this->assertSame(['first', 'second', 'handler'], $log);
     }
@@ -194,30 +198,18 @@ final class CommandBusTest extends TestCase
      */
     public function testMiddlewareCanShortCircuitPipeline(): void
     {
-        $command = new class () implements CommandInterface {
-        };
+        $handler = new TestHandler();
 
-        $handler = new class () implements CommandHandlerInterface {
-            public bool $called = false;
-
-            public function handle(CommandInterface $command): mixed
-            {
-                $this->called = true;
-
-                return null;
-            }
-        };
-
-        $middleware = new class () implements CommandMiddlewareInterface {
-            public function execute(CommandInterface $command, callable $next): mixed
+        $middleware = new class () {
+            public function execute(object $command, Closure $next): mixed
             {
                 return 'short-circuited';
             }
         };
 
-        $this->bus->register(get_class($command), $handler);
+        $this->bus->register(TestCommand::class, $handler);
         $this->bus->addMiddleware($middleware);
-        $result = $this->bus->dispatch($command);
+        $result = $this->bus->dispatch(new TestCommand());
 
         $this->assertFalse($handler->called);
         $this->assertSame('short-circuited', $result);

@@ -30,12 +30,10 @@ composer require andrewdyer/command-bus
 
 ### 1. Create a command
 
-Create a command by defining a plain object that implements `CommandInterface`, carrying the data required to perform an operation:
+Create a command as a plain class carrying the data required to perform an operation:
 
 ```php
-use AndrewDyer\CommandBus\Contracts\CommandInterface;
-
-class CreateUserCommand implements CommandInterface
+class CreateUserCommand
 {
     public function __construct(
         public readonly string $firstName,
@@ -47,15 +45,12 @@ class CreateUserCommand implements CommandInterface
 
 ### 2. Create a handler
 
-Create a handler by implementing `CommandHandlerInterface` with the logic for processing the command:
+Create a handler with a `handle()` method that processes the command:
 
 ```php
-use AndrewDyer\CommandBus\Contracts\CommandHandlerInterface;
-use AndrewDyer\CommandBus\Contracts\CommandInterface;
-
-class CreateUserHandler implements CommandHandlerInterface
+class CreateUserHandler
 {
-    public function handle(CommandInterface $command): mixed
+    public function handle(CreateUserCommand $command): mixed
     {
         // Handle the command...
 
@@ -106,15 +101,12 @@ $bus->addMiddleware(new LoggingMiddleware($logger));
 
 #### Custom middleware
 
-Custom middleware implements `CommandMiddlewareInterface` and receives the command and a `$next` callable to pass control down the pipeline:
+Custom middleware defines an `execute()` method that receives the command and a `$next` closure to pass control down the pipeline:
 
 ```php
-use AndrewDyer\CommandBus\Contracts\CommandInterface;
-use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
-
-class TransactionMiddleware implements CommandMiddlewareInterface
+class TransactionMiddleware
 {
-    public function execute(CommandInterface $command, callable $next): mixed
+    public function execute(object $command, \Closure $next): mixed
     {
         // Begin transaction...
 

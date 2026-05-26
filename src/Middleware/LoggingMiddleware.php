@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace AndrewDyer\CommandBus\Middleware;
 
-use AndrewDyer\CommandBus\Contracts\CommandInterface;
-use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
 use Psr\Log\LoggerInterface;
 
 /**
  * Middleware that logs command dispatch and completion.
  */
-readonly class LoggingMiddleware implements CommandMiddlewareInterface
+readonly class LoggingMiddleware
 {
     /**
      * Creates a new logging middleware instance.
@@ -25,11 +23,11 @@ readonly class LoggingMiddleware implements CommandMiddlewareInterface
     /**
      * Processes a command through the middleware pipeline.
      *
-     * @param CommandInterface $command The command to process.
-     * @param callable $next The next middleware in the pipeline.
+     * @param object $command The command to process.
+     * @param \Closure $next The next middleware in the pipeline.
      * @return mixed The result of the middleware execution.
      */
-    public function execute(CommandInterface $command, callable $next): mixed
+    public function execute(object $command, \Closure $next): mixed
     {
         $commandClass = get_class($command);
 
