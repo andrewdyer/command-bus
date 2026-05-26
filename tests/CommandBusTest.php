@@ -90,6 +90,26 @@ final class CommandBusTest extends TestCase
     }
 
     /**
+     * Asserts that registering a handler with a non-public handle() method throws InvalidArgumentException.
+     */
+    public function testThrowsInvalidArgumentExceptionWhenHandlerHasNonPublicHandleMethod(): void
+    {
+        $command = new class () {
+        };
+
+        $handler = new class () {
+            protected function handle(object $command): mixed
+            {
+                return null;
+            }
+        };
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->bus->register(get_class($command), $handler);
+    }
+
+    /**
      * Asserts that registering middleware without an execute() method throws InvalidArgumentException.
      */
     public function testThrowsInvalidArgumentExceptionWhenMiddlewareHasNoExecuteMethod(): void

@@ -32,9 +32,9 @@ class CommandBus
      */
     public function register(string $commandClass, object $handler): self
     {
-        if (!method_exists($handler, 'handle')) {
+        if (!is_callable([$handler, 'handle'])) {
             throw new InvalidArgumentException(
-                get_class($handler) . ' must implement a handle() method.'
+                get_class($handler) . ' must implement a public handle() method.'
             );
         }
 
