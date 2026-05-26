@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace AndrewDyer\CommandBus\Tests;
 
 use AndrewDyer\CommandBus\CommandBus;
-use AndrewDyer\CommandBus\Contracts\CommandHandlerInterface;
 use AndrewDyer\CommandBus\Contracts\CommandInterface;
 use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
 use AndrewDyer\CommandBus\Exceptions\HandlerNotFoundException;
@@ -38,7 +37,7 @@ final class CommandBusTest extends TestCase
         $command = new class () implements CommandInterface {
         };
 
-        $handler = new class () implements CommandHandlerInterface {
+        $handler = new class () {
             public bool $called = false;
 
             public function handle(CommandInterface $command): mixed
@@ -63,7 +62,7 @@ final class CommandBusTest extends TestCase
         $command = new class () implements CommandInterface {
         };
 
-        $handler = new class () implements CommandHandlerInterface {
+        $handler = new class () {
             public function handle(CommandInterface $command): mixed
             {
                 return 'expected result';
@@ -74,6 +73,22 @@ final class CommandBusTest extends TestCase
         $result = $this->bus->dispatch($command);
 
         $this->assertSame('expected result', $result);
+    }
+
+    /**
+     * Asserts that registering a handler without a handle() method throws InvalidArgumentException.
+     */
+    public function testThrowsInvalidArgumentExceptionWhenHandlerHasNoHandleMethod(): void
+    {
+        $command = new class () implements CommandInterface {
+        };
+
+        $handler = new class () {
+        };
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->bus->register(get_class($command), $handler);
     }
 
     /**
@@ -99,7 +114,7 @@ final class CommandBusTest extends TestCase
         $command = new class () implements CommandInterface {
         };
 
-        $handler = new class ($log) implements CommandHandlerInterface {
+        $handler = new class ($log) {
             public function __construct(private array &$log)
             {
             }
@@ -142,7 +157,7 @@ final class CommandBusTest extends TestCase
         $command = new class () implements CommandInterface {
         };
 
-        $handler = new class ($log) implements CommandHandlerInterface {
+        $handler = new class ($log) {
             public function __construct(private array &$log)
             {
             }
@@ -197,7 +212,7 @@ final class CommandBusTest extends TestCase
         $command = new class () implements CommandInterface {
         };
 
-        $handler = new class () implements CommandHandlerInterface {
+        $handler = new class () {
             public bool $called = false;
 
             public function handle(CommandInterface $command): mixed

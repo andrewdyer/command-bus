@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AndrewDyer\CommandBus;
 
-use AndrewDyer\CommandBus\Contracts\CommandHandlerInterface;
 use AndrewDyer\CommandBus\Contracts\CommandInterface;
 use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
 use AndrewDyer\CommandBus\Exceptions\HandlerNotFoundException;
+use InvalidArgumentException;
 
 /**
  * Dispatches commands to their registered handlers through a middleware pipeline.
@@ -28,11 +28,18 @@ class CommandBus
      * Registers a handler for a specific command class.
      *
      * @param string $commandClass The fully qualified command class name.
-     * @param CommandHandlerInterface $handler The handler instance.
+     * @param object $handler The handler instance.
      * @return self The command bus instance for method chaining.
+     * @throws InvalidArgumentException When the handler does not implement a handle() method.
      */
-    public function register(string $commandClass, CommandHandlerInterface $handler): self
+    public function register(string $commandClass, object $handler): self
     {
+        if (!method_exists($handler, 'handle')) {
+            throw new InvalidArgumentException(
+                get_class($handler) . ' must implement a handle() method.'
+            );
+        }
+
         $this->handlers[$commandClass] = $handler;
 
         return $this;
