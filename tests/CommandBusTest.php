@@ -123,6 +123,23 @@ final class CommandBusTest extends TestCase
     }
 
     /**
+     * Asserts that registering middleware with a non-public execute() method throws InvalidArgumentException.
+     */
+    public function testThrowsInvalidArgumentExceptionWhenMiddlewareHasNonPublicExecuteMethod(): void
+    {
+        $middleware = new class () {
+            protected function execute(object $command, \Closure $next): mixed
+            {
+                return $next($command);
+            }
+        };
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->bus->addMiddleware($middleware);
+    }
+
+    /**
      * Asserts that dispatching an unregistered command throws HandlerNotFoundException.
      */
     public function testThrowsHandlerNotFoundExceptionForUnregisteredCommand(): void

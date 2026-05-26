@@ -52,9 +52,9 @@ class CommandBus
      */
     public function addMiddleware(object $middleware): self
     {
-        if (!method_exists($middleware, 'execute')) {
+        if (!is_callable([$middleware, 'execute'])) {
             throw new InvalidArgumentException(
-                get_class($middleware) . ' must implement an execute() method.'
+                get_class($middleware) . ' must implement a public execute() method.'
             );
         }
 
