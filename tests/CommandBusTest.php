@@ -6,6 +6,11 @@ namespace AndrewDyer\CommandBus\Tests;
 
 use AndrewDyer\CommandBus\CommandBus;
 use AndrewDyer\CommandBus\Exceptions\HandlerNotFoundException;
+use AndrewDyer\CommandBus\Tests\Support\TestCommand;
+use AndrewDyer\CommandBus\Tests\Support\TestHandler;
+use AndrewDyer\CommandBus\Tests\Support\TestMiddleware;
+use Closure;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -32,22 +37,10 @@ final class CommandBusTest extends TestCase
      */
     public function testDispatchesCommandToRegisteredHandler(): void
     {
-        $command = new class () {
-        };
+        $handler = new TestHandler();
 
-        $handler = new class () {
-            public bool $called = false;
-
-            public function handle(object $command): mixed
-            {
-                $this->called = true;
-
-                return null;
-            }
-        };
-
-        $this->bus->register(get_class($command), $handler);
-        $this->bus->dispatch($command);
+        $this->bus->register(TestCommand::class, $handler);
+        $this->bus->dispatch(new TestCommand());
 
         $this->assertTrue($handler->called);
     }
@@ -57,9 +50,6 @@ final class CommandBusTest extends TestCase
      */
     public function testDispatchReturnsHandlerResult(): void
     {
-        $command = new class () {
-        };
-
         $handler = new class () {
             public function handle(object $command): mixed
             {
@@ -67,8 +57,8 @@ final class CommandBusTest extends TestCase
             }
         };
 
-        $this->bus->register(get_class($command), $handler);
-        $result = $this->bus->dispatch($command);
+        $this->bus->register(TestCommand::class, $handler);
+        $result = $this->bus->dispatch(new TestCommand());
 
         $this->assertSame('expected result', $result);
     }
@@ -78,15 +68,12 @@ final class CommandBusTest extends TestCase
      */
     public function testThrowsInvalidArgumentExceptionWhenHandlerHasNoHandleMethod(): void
     {
-        $command = new class () {
-        };
-
         $handler = new class () {
         };
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
-        $this->bus->register(get_class($command), $handler);
+        $this->bus->register(TestCommand::class, $handler);
     }
 
     /**
@@ -94,9 +81,6 @@ final class CommandBusTest extends TestCase
      */
     public function testThrowsInvalidArgumentExceptionWhenHandlerHasNonPublicHandleMethod(): void
     {
-        $command = new class () {
-        };
-
         $handler = new class () {
             protected function handle(object $command): mixed
             {
@@ -104,9 +88,9 @@ final class CommandBusTest extends TestCase
             }
         };
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
-        $this->bus->register(get_class($command), $handler);
+        $this->bus->register(TestCommand::class, $handler);
     }
 
     /**
@@ -117,7 +101,7 @@ final class CommandBusTest extends TestCase
         $middleware = new class () {
         };
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $this->bus->addMiddleware($middleware);
     }
@@ -128,13 +112,13 @@ final class CommandBusTest extends TestCase
     public function testThrowsInvalidArgumentExceptionWhenMiddlewareHasNonPublicExecuteMethod(): void
     {
         $middleware = new class () {
-            protected function execute(object $command, \Closure $next): mixed
+            protected function execute(object $command, Closure $next): mixed
             {
                 return $next($command);
             }
         };
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $this->bus->addMiddleware($middleware);
     }
@@ -144,12 +128,9 @@ final class CommandBusTest extends TestCase
      */
     public function testThrowsHandlerNotFoundExceptionForUnregisteredCommand(): void
     {
-        $command = new class () {
-        };
-
         $this->expectException(HandlerNotFoundException::class);
 
-        $this->bus->dispatch($command);
+        $this->bus->dispatch(new TestCommand());
     }
 
     /**
@@ -158,9 +139,6 @@ final class CommandBusTest extends TestCase
     public function testMiddlewareIsExecutedBeforeHandler(): void
     {
         $log = [];
-
-        $command = new class () {
-        };
 
         $handler = new class ($log) {
             public function __construct(private array &$log)
@@ -175,22 +153,11 @@ final class CommandBusTest extends TestCase
             }
         };
 
-        $middleware = new class ($log) {
-            public function __construct(private array &$log)
-            {
-            }
+        $middleware = new TestMiddleware($log, 'middleware');
 
-            public function execute(object $command, \Closure $next): mixed
-            {
-                $this->log[] = 'middleware';
-
-                return $next($command);
-            }
-        };
-
-        $this->bus->register(get_class($command), $handler);
+        $this->bus->register(TestCommand::class, $handler);
         $this->bus->addMiddleware($middleware);
-        $this->bus->dispatch($command);
+        $this->bus->dispatch(new TestCommand());
 
         $this->assertSame(['middleware', 'handler'], $log);
     }
@@ -202,9 +169,6 @@ final class CommandBusTest extends TestCase
     {
         $log = [];
 
-        $command = new class () {
-        };
-
         $handler = new class ($log) {
             public function __construct(private array &$log)
             {
@@ -218,36 +182,13 @@ final class CommandBusTest extends TestCase
             }
         };
 
-        $first = new class ($log) {
-            public function __construct(private array &$log)
-            {
-            }
+        $first = new TestMiddleware($log, 'first');
+        $second = new TestMiddleware($log, 'second');
 
-            public function execute(object $command, \Closure $next): mixed
-            {
-                $this->log[] = 'first';
-
-                return $next($command);
-            }
-        };
-
-        $second = new class ($log) {
-            public function __construct(private array &$log)
-            {
-            }
-
-            public function execute(object $command, \Closure $next): mixed
-            {
-                $this->log[] = 'second';
-
-                return $next($command);
-            }
-        };
-
-        $this->bus->register(get_class($command), $handler);
+        $this->bus->register(TestCommand::class, $handler);
         $this->bus->addMiddleware($first);
         $this->bus->addMiddleware($second);
-        $this->bus->dispatch($command);
+        $this->bus->dispatch(new TestCommand());
 
         $this->assertSame(['first', 'second', 'handler'], $log);
     }
@@ -257,30 +198,18 @@ final class CommandBusTest extends TestCase
      */
     public function testMiddlewareCanShortCircuitPipeline(): void
     {
-        $command = new class () {
-        };
-
-        $handler = new class () {
-            public bool $called = false;
-
-            public function handle(object $command): mixed
-            {
-                $this->called = true;
-
-                return null;
-            }
-        };
+        $handler = new TestHandler();
 
         $middleware = new class () {
-            public function execute(object $command, \Closure $next): mixed
+            public function execute(object $command, Closure $next): mixed
             {
                 return 'short-circuited';
             }
         };
 
-        $this->bus->register(get_class($command), $handler);
+        $this->bus->register(TestCommand::class, $handler);
         $this->bus->addMiddleware($middleware);
-        $result = $this->bus->dispatch($command);
+        $result = $this->bus->dispatch(new TestCommand());
 
         $this->assertFalse($handler->called);
         $this->assertSame('short-circuited', $result);
