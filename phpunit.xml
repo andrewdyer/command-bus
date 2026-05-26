@@ -8,8 +8,8 @@
     backupGlobals="false"
     backupStaticProperties="false">
     <testsuites>
-        <testsuite name="Default">
-            <directory>tests</directory>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
         </testsuite>
     </testsuites>
 </phpunit>

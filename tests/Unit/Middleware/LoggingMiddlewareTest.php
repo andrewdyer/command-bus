@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AndrewDyer\CommandBus\Tests\Middleware;
+namespace AndrewDyer\CommandBus\Tests\Unit\Middleware;
 
 use AndrewDyer\CommandBus\Middleware\LoggingMiddleware;
 use AndrewDyer\CommandBus\Tests\Support\TestCommand;
