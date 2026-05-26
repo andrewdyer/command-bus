@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AndrewDyer\CommandBus\Tests;
+namespace AndrewDyer\CommandBus\Tests\Unit;
 
 use AndrewDyer\CommandBus\CommandBus;
 use AndrewDyer\CommandBus\Exceptions\HandlerNotFoundException;
