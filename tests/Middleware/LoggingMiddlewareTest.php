@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AndrewDyer\CommandBus\Tests\Middleware;
 
 use AndrewDyer\CommandBus\Middleware\LoggingMiddleware;
+use AndrewDyer\CommandBus\Tests\Support\TestCommand;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -18,9 +19,7 @@ final class LoggingMiddlewareTest extends TestCase
      */
     public function testLogsCommandBeforeAndAfterDispatch(): void
     {
-        $command = new class () {
-        };
-        $commandClass = get_class($command);
+        $commandClass = TestCommand::class;
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->exactly(2))
@@ -30,7 +29,7 @@ final class LoggingMiddlewareTest extends TestCase
             });
 
         $middleware = new LoggingMiddleware($logger);
-        $middleware->execute($command, fn () => null);
+        $middleware->execute(new TestCommand(), fn () => null);
 
         $this->assertSame(
             [
@@ -46,12 +45,10 @@ final class LoggingMiddlewareTest extends TestCase
      */
     public function testReturnsResultFromNextCallable(): void
     {
-        $command = new class () {
-        };
         $logger = $this->createMock(LoggerInterface::class);
 
         $middleware = new LoggingMiddleware($logger);
-        $result = $middleware->execute($command, fn () => 'expected result');
+        $result = $middleware->execute(new TestCommand(), fn () => 'expected result');
 
         $this->assertSame('expected result', $result);
     }
@@ -61,8 +58,7 @@ final class LoggingMiddlewareTest extends TestCase
      */
     public function testPassesCommandToNextCallable(): void
     {
-        $command = new class () {
-        };
+        $command = new TestCommand();
         $logger = $this->createMock(LoggerInterface::class);
         $receivedCommand = null;
 
