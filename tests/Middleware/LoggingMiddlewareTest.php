@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace AndrewDyer\CommandBus\Tests\Middleware;
 
-use AndrewDyer\CommandBus\Contracts\CommandInterface;
 use AndrewDyer\CommandBus\Middleware\LoggingMiddleware;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -19,7 +18,7 @@ final class LoggingMiddlewareTest extends TestCase
      */
     public function testLogsCommandBeforeAndAfterDispatch(): void
     {
-        $command = new class () implements CommandInterface {
+        $command = new class () {
         };
         $commandClass = get_class($command);
 
@@ -47,7 +46,7 @@ final class LoggingMiddlewareTest extends TestCase
      */
     public function testReturnsResultFromNextCallable(): void
     {
-        $command = new class () implements CommandInterface {
+        $command = new class () {
         };
         $logger = $this->createMock(LoggerInterface::class);
 
@@ -62,13 +61,13 @@ final class LoggingMiddlewareTest extends TestCase
      */
     public function testPassesCommandToNextCallable(): void
     {
-        $command = new class () implements CommandInterface {
+        $command = new class () {
         };
         $logger = $this->createMock(LoggerInterface::class);
         $receivedCommand = null;
 
         $middleware = new LoggingMiddleware($logger);
-        $middleware->execute($command, function(CommandInterface $cmd) use (&$receivedCommand) {
+        $middleware->execute($command, function(object $cmd) use (&$receivedCommand) {
             $receivedCommand = $cmd;
         });
 

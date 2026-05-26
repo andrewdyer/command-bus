@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace AndrewDyer\CommandBus\Tests;
 
 use AndrewDyer\CommandBus\CommandBus;
-use AndrewDyer\CommandBus\Contracts\CommandInterface;
-use AndrewDyer\CommandBus\Contracts\CommandMiddlewareInterface;
 use AndrewDyer\CommandBus\Exceptions\HandlerNotFoundException;
 use PHPUnit\Framework\TestCase;
 
@@ -34,13 +32,13 @@ final class CommandBusTest extends TestCase
      */
     public function testDispatchesCommandToRegisteredHandler(): void
     {
-        $command = new class () implements CommandInterface {
+        $command = new class () {
         };
 
         $handler = new class () {
             public bool $called = false;
 
-            public function handle(CommandInterface $command): mixed
+            public function handle(object $command): mixed
             {
                 $this->called = true;
 
@@ -59,11 +57,11 @@ final class CommandBusTest extends TestCase
      */
     public function testDispatchReturnsHandlerResult(): void
     {
-        $command = new class () implements CommandInterface {
+        $command = new class () {
         };
 
         $handler = new class () {
-            public function handle(CommandInterface $command): mixed
+            public function handle(object $command): mixed
             {
                 return 'expected result';
             }
@@ -80,7 +78,7 @@ final class CommandBusTest extends TestCase
      */
     public function testThrowsInvalidArgumentExceptionWhenHandlerHasNoHandleMethod(): void
     {
-        $command = new class () implements CommandInterface {
+        $command = new class () {
         };
 
         $handler = new class () {
@@ -92,11 +90,24 @@ final class CommandBusTest extends TestCase
     }
 
     /**
+     * Asserts that registering middleware without an execute() method throws InvalidArgumentException.
+     */
+    public function testThrowsInvalidArgumentExceptionWhenMiddlewareHasNoExecuteMethod(): void
+    {
+        $middleware = new class () {
+        };
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->bus->addMiddleware($middleware);
+    }
+
+    /**
      * Asserts that dispatching an unregistered command throws HandlerNotFoundException.
      */
     public function testThrowsHandlerNotFoundExceptionForUnregisteredCommand(): void
     {
-        $command = new class () implements CommandInterface {
+        $command = new class () {
         };
 
         $this->expectException(HandlerNotFoundException::class);
@@ -111,7 +122,7 @@ final class CommandBusTest extends TestCase
     {
         $log = [];
 
-        $command = new class () implements CommandInterface {
+        $command = new class () {
         };
 
         $handler = new class ($log) {
@@ -119,7 +130,7 @@ final class CommandBusTest extends TestCase
             {
             }
 
-            public function handle(CommandInterface $command): mixed
+            public function handle(object $command): mixed
             {
                 $this->log[] = 'handler';
 
@@ -127,12 +138,12 @@ final class CommandBusTest extends TestCase
             }
         };
 
-        $middleware = new class ($log) implements CommandMiddlewareInterface {
+        $middleware = new class ($log) {
             public function __construct(private array &$log)
             {
             }
 
-            public function execute(CommandInterface $command, callable $next): mixed
+            public function execute(object $command, \Closure $next): mixed
             {
                 $this->log[] = 'middleware';
 
@@ -154,7 +165,7 @@ final class CommandBusTest extends TestCase
     {
         $log = [];
 
-        $command = new class () implements CommandInterface {
+        $command = new class () {
         };
 
         $handler = new class ($log) {
@@ -162,7 +173,7 @@ final class CommandBusTest extends TestCase
             {
             }
 
-            public function handle(CommandInterface $command): mixed
+            public function handle(object $command): mixed
             {
                 $this->log[] = 'handler';
 
@@ -170,12 +181,12 @@ final class CommandBusTest extends TestCase
             }
         };
 
-        $first = new class ($log) implements CommandMiddlewareInterface {
+        $first = new class ($log) {
             public function __construct(private array &$log)
             {
             }
 
-            public function execute(CommandInterface $command, callable $next): mixed
+            public function execute(object $command, \Closure $next): mixed
             {
                 $this->log[] = 'first';
 
@@ -183,12 +194,12 @@ final class CommandBusTest extends TestCase
             }
         };
 
-        $second = new class ($log) implements CommandMiddlewareInterface {
+        $second = new class ($log) {
             public function __construct(private array &$log)
             {
             }
 
-            public function execute(CommandInterface $command, callable $next): mixed
+            public function execute(object $command, \Closure $next): mixed
             {
                 $this->log[] = 'second';
 
@@ -209,13 +220,13 @@ final class CommandBusTest extends TestCase
      */
     public function testMiddlewareCanShortCircuitPipeline(): void
     {
-        $command = new class () implements CommandInterface {
+        $command = new class () {
         };
 
         $handler = new class () {
             public bool $called = false;
 
-            public function handle(CommandInterface $command): mixed
+            public function handle(object $command): mixed
             {
                 $this->called = true;
 
@@ -223,8 +234,8 @@ final class CommandBusTest extends TestCase
             }
         };
 
-        $middleware = new class () implements CommandMiddlewareInterface {
-            public function execute(CommandInterface $command, callable $next): mixed
+        $middleware = new class () {
+            public function execute(object $command, \Closure $next): mixed
             {
                 return 'short-circuited';
             }
