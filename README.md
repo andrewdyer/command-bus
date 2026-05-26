@@ -47,15 +47,12 @@ class CreateUserCommand implements CommandInterface
 
 ### 2. Create a handler
 
-Create a handler by implementing `CommandHandlerInterface` with the logic for processing the command:
+Create a handler as a plain class with a `handle` method typed to accept the specific command it processes:
 
 ```php
-use AndrewDyer\CommandBus\Contracts\CommandHandlerInterface;
-use AndrewDyer\CommandBus\Contracts\CommandInterface;
-
-class CreateUserHandler implements CommandHandlerInterface
+class CreateUserHandler
 {
-    public function handle(CommandInterface $command): mixed
+    public function handle(CreateUserCommand $command): mixed
     {
         // Handle the command...
 
