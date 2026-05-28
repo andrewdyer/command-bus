@@ -11,6 +11,18 @@
   ],
   "type": "library",
   "license": "MIT",
+  "authors": [
+    {
+      "name": "Andrew Dyer",
+      "homepage": "https://andrewdyer.rocks",
+      "role": "Developer"
+    }
+  ],
+  "homepage": "https://github.com/andrewdyer/command-bus",
+  "support": {
+    "issues": "https://github.com/andrewdyer/command-bus/issues",
+    "source": "https://github.com/andrewdyer/command-bus"
+  },
   "autoload": {
     "psr-4": {
       "AndrewDyer\\CommandBus\\": "src/"
