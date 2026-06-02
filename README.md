@@ -1,15 +1,11 @@
-![Command Bus](http://public-assets.andrewdyer.rocks/images/covers/command-bus.png)
-
-<p align="center">
-  <a href="https://packagist.org/packages/andrewdyer/command-bus"><img src="https://poser.pugx.org/andrewdyer/command-bus/v/stable?style=for-the-badge" alt="Latest Stable Version"></a>
-  <a href="https://packagist.org/packages/andrewdyer/command-bus"><img src="https://poser.pugx.org/andrewdyer/command-bus/downloads?style=for-the-badge" alt="Total Downloads"></a>
-  <a href="https://packagist.org/packages/andrewdyer/command-bus"><img src="https://poser.pugx.org/andrewdyer/command-bus/license?style=for-the-badge" alt="License"></a>
-  <a href="https://packagist.org/packages/andrewdyer/command-bus"><img src="https://poser.pugx.org/andrewdyer/command-bus/require/php?style=for-the-badge" alt="PHP Version Required"></a>
-</p>
-
 # Command Bus
 
 A framework-agnostic PHP library for dispatching commands to handlers, with support for a configurable middleware pipeline.
+
+[![Latest Stable Version](http://poser.pugx.org/andrewdyer/command-bus/v?style=flat-square)](https://packagist.org/packages/andrewdyer/command-bus)
+[![Total Downloads](http://poser.pugx.org/andrewdyer/command-bus/downloads?style=flat-square)](https://packagist.org/packages/andrewdyer/command-bus)
+[![License](http://poser.pugx.org/andrewdyer/command-bus/license?style=flat-square)](https://packagist.org/packages/andrewdyer/command-bus)
+[![PHP Version Require](http://poser.pugx.org/andrewdyer/command-bus/require/php?style=flat-square)](https://packagist.org/packages/andrewdyer/command-bus)
 
 ## Introduction
 
