@@ -1,6 +1,6 @@
 # Command Bus
 
-A framework-agnostic PHP library for dispatching commands to handlers, with support for a configurable middleware pipeline.
+A framework-agnostic library for dispatching commands to handlers, with support for a configurable middleware pipeline.
 
 [![Latest Stable Version](http://poser.pugx.org/andrewdyer/command-bus/v?style=flat-square)](https://packagist.org/packages/andrewdyer/command-bus)
 [![Total Downloads](http://poser.pugx.org/andrewdyer/command-bus/downloads?style=flat-square)](https://packagist.org/packages/andrewdyer/command-bus)
@@ -9,7 +9,7 @@ A framework-agnostic PHP library for dispatching commands to handlers, with supp
 
 ## Introduction
 
-This library provides a framework-agnostic command bus for PHP applications, dispatching commands to their registered handlers through a configurable middleware pipeline, with a PSR-3 compatible logging middleware included out of the box.
+This library decouples command dispatch from command handling, allowing a pipeline to be composed with any number of middleware to handle cross-cutting concerns such as logging, validation, or transaction management. A PSR-3 compatible logging middleware is included out of the box, and custom middleware can be added by implementing a public execute method that receives the command and next callable.
 
 ## Prerequisites
 
